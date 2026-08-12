@@ -1,0 +1,18 @@
+{
+  "id": "spring_boot",
+  "display_name": "Spring Boot",
+  "department": "backend",
+  "request_handling_model": "sync",
+  "typing": "static",
+  "ecosystem_maturity": "mature",
+  "learning_curve": "high",
+  "operational_complexity": "high",
+  "horizontal_scaling": "via-extension",
+  "source_citations": [
+    "https://docs.spring.io/spring-boot/documentation.html",
+    "https://spring.io/guides/gs/spring-boot/",
+    "https://docs.spring.io/spring-boot/reference/web/index.html"
+  ],
+  "notes": "typing is static — Java is statically typed by default, unlike the other profiles in this department. learning_curve is high because it's evaluated against a JS-only baseline — a developer must learn Java, JVM build tooling (Maven/Gradle), and Spring's annotation-driven dependency injection in addition to Boot itself. operational_complexity and horizontal_scaling assume standard managed JVM hosting (e.g. AWS Elastic Beanstalk) — both shift lower on a serverless JVM runtime and higher for manually managed on-prem clusters.",
+  "last_reviewed": "2026-08-12"
+}

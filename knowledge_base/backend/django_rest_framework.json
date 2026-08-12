@@ -1,0 +1,18 @@
+{
+  "id": "django_rest_framework",
+  "display_name": "Django REST Framework",
+  "department": "backend",
+  "request_handling_model": "sync",
+  "typing": "dynamic",
+  "ecosystem_maturity": "mature",
+  "learning_curve": "high",
+  "operational_complexity": "medium",
+  "horizontal_scaling": "via-extension",
+  "source_citations": [
+    "https://www.django-rest-framework.org/",
+    "https://www.django-rest-framework.org/api-guide/views/",
+    "https://docs.djangoproject.com/en/5.0/topics/async/"
+  ],
+  "notes": "typing is dynamic (Python); optional static typing via type hints and django-stubs/mypy exists but is not enforced by the framework. learning_curve is high because it's evaluated against a JS-only baseline — a developer must learn Python and Django's ORM/MTV conventions in addition to DRF's serializers and viewsets. operational_complexity and horizontal_scaling assume standard managed hosting for Django (e.g. Render, Heroku) running behind gunicorn/uWSGI — no built-in autoscaling.",
+  "last_reviewed": "2026-08-12"
+}

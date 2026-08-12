@@ -12,6 +12,6 @@
     "https://nextjs.org/docs",
     "https://vercel.com/docs/frameworks/nextjs"
   ],
-  "notes": "typing is dynamic by default (plain JS), but TypeScript is the ecosystem norm for real projects, not an add-on. operational_complexity and horizontal_scaling assume standard managed hosting (Vercel) \u2014 both shift toward medium/via-extension if self-hosted.",
+  "notes": "typing is dynamic by default (plain JS), but TypeScript is the ecosystem norm for real projects, not an add-on. operational_complexity and horizontal_scaling assume standard managed hosting (Vercel) - both shift toward medium/via-extension if self-hosted.",
   "last_reviewed": "2026-08-11"
 }

@@ -1,0 +1,18 @@
+{
+  "id": "express",
+  "display_name": "Express",
+  "department": "backend",
+  "request_handling_model": "async",
+  "typing": "dynamic",
+  "ecosystem_maturity": "mature",
+  "learning_curve": "low",
+  "operational_complexity": "low",
+  "horizontal_scaling": "via-extension",
+  "source_citations": [
+    "https://expressjs.com/en/starter/installing.html",
+    "https://expressjs.com/en/guide/routing.html",
+    "https://expressjs.com/en/advanced/best-practice-performance.html"
+  ],
+  "notes": "typing is dynamic (plain JavaScript); TypeScript support exists via community @types/express but is opt-in, not framework-provided. operational_complexity and horizontal_scaling assume standard managed Node hosting (e.g. Render, Heroku) with a process manager — Express itself provides no built-in clustering, load balancing, or autoscaling.",
+  "last_reviewed": "2026-08-12"
+}

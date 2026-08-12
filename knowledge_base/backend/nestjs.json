@@ -1,0 +1,18 @@
+{
+  "id": "nestjs",
+  "display_name": "NestJS",
+  "department": "backend",
+  "request_handling_model": "async",
+  "typing": "dynamic",
+  "ecosystem_maturity": "mature",
+  "learning_curve": "medium",
+  "operational_complexity": "medium",
+  "horizontal_scaling": "via-extension",
+  "source_citations": [
+    "https://docs.nestjs.com/",
+    "https://docs.nestjs.com/first-steps",
+    "https://docs.nestjs.com/faq/serverless"
+  ],
+  "notes": "typing is dynamic by default (NestJS runs on Node.js/JavaScript), but TypeScript is not just the ecosystem norm — Nest's decorator-based dependency injection relies on TypeScript's design-time type metadata, so nearly all real projects use TS. operational_complexity and horizontal_scaling assume standard managed Node hosting (e.g. Railway, Render) — both shift toward higher complexity if self-managing on Kubernetes.",
+  "last_reviewed": "2026-08-12"
+}
