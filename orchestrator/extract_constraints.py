@@ -3,6 +3,11 @@ Stage 2 of the pipeline: turn a free-text problem statement into a
 numbered list of discrete Constraint objects, each classified hard or soft.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from pydantic import BaseModel
 
 from llm.base import LLMProvider

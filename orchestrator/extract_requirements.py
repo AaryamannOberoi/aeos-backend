@@ -3,6 +3,11 @@ Stage 1 of the pipeline: turn a free-text problem statement into a
 numbered list of discrete Requirement objects.
 """
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from pydantic import BaseModel
 
 from llm.base import LLMProvider

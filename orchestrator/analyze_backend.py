@@ -3,9 +3,36 @@ Stage 3 of the pipeline: for each extracted requirement, work out which
 TechnologyProfile attributes it implies an opinion on.
 """
 
+import logging
+import re
+import sys
+from enum import Enum
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from knowledge_base.loader import load_department
 from llm.base import LLMProvider
 from schemas.requirement_analysis import Requirement, RequirementAnalysis
+from schemas.technology_profile import (
+    EcosystemMaturity,
+    HorizontalScaling,
+    LearningCurve,
+    OperationalComplexity,
+    RequestHandlingModel,
+    Typing,
+)
+
+logger = logging.getLogger(__name__)
+
+_ATTRIBUTE_ENUMS: dict[str, type[Enum]] = {
+    "request_handling_model": RequestHandlingModel,
+    "typing": Typing,
+    "ecosystem_maturity": EcosystemMaturity,
+    "learning_curve": LearningCurve,
+    "operational_complexity": OperationalComplexity,
+    "horizontal_scaling": HorizontalScaling,
+}
 
 
 def _known_kb_refs() -> list[str]:
@@ -22,6 +49,12 @@ def _build_prompt(requirement: Requirement, kb_refs: list[str]) -> str:
         "requirement gives you a real opinion on it. If the requirement "
         "says nothing relevant to an attribute, leave that field null — "
         "do not guess just to fill every field.\n"
+        "- Consistency: if your reasoning names or clearly argues for a "
+        "specific value on an attribute (e.g. you write that the ideal "
+        "technology should be 'mature' or should support 'async' "
+        "handling), the corresponding field in implied_attribute_needs "
+        "MUST be set to that value. Never let your reasoning argue for a "
+        "value while leaving that field null.\n"
         f"- requirement_id must be exactly: {requirement.id}\n"
         "- supporting_evidence must be a list of kb_ref ids drawn ONLY "
         f"from this known set: {kb_refs}. Cite an id only if that "
@@ -35,10 +68,39 @@ def _build_prompt(requirement: Requirement, kb_refs: list[str]) -> str:
     )
 
 
+def _value_mentioned(value: str, text: str) -> bool:
+    token = re.escape(value).replace(r"\-", "[-_ ]")
+    return re.search(rf"\b{token}\b", text, re.IGNORECASE) is not None
+
+
+def _flag_reasoning_inconsistencies(analysis: RequirementAnalysis) -> None:
+    """
+    Post-hoc guard: if reasoning explicitly names an enum value for an
+    attribute that implied_attribute_needs left null, the LLM has
+    contradicted itself. Log it loudly — never pass that through silently.
+    """
+    needs = analysis.implied_attribute_needs
+    for field_name, enum_cls in _ATTRIBUTE_ENUMS.items():
+        if getattr(needs, field_name) is not None:
+            continue
+        for member in enum_cls:
+            if _value_mentioned(member.value, analysis.reasoning):
+                logger.warning(
+                    "%s: reasoning names '%s' for '%s' but "
+                    "implied_attribute_needs.%s was left null — reasoning: %r",
+                    analysis.requirement_id,
+                    member.value,
+                    field_name,
+                    field_name,
+                    analysis.reasoning,
+                )
+
+
 def analyze_requirement(requirement: Requirement, provider: LLMProvider) -> RequirementAnalysis:
     prompt = _build_prompt(requirement, _known_kb_refs())
     result = provider.generate_structured(prompt, RequirementAnalysis)
     result.requirement_id = requirement.id
+    _flag_reasoning_inconsistencies(result)
     return result
 
 
@@ -49,6 +111,8 @@ def analyze_all(requirements: list[Requirement], provider: LLMProvider) -> list[
 if __name__ == "__main__":
     from llm.ollama_provider import OllamaProvider
     from orchestrator.extract_requirements import extract_requirements
+
+    logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 
     TEST_PROBLEM_STATEMENT = (
         "Build a backend for a high-traffic e-commerce platform that needs "
