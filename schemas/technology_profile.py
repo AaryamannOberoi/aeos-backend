@@ -12,7 +12,7 @@ reads and matches against them at inference time.
 from datetime import date
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RequestHandlingModel(str, Enum):
@@ -83,5 +83,4 @@ class TechnologyProfile(BaseModel):
     )
     last_reviewed: date
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)

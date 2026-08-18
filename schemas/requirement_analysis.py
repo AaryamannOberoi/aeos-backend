@@ -11,7 +11,7 @@ human/UI only.
 
 from enum import Enum
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from schemas.technology_profile import (
     EcosystemMaturity,
@@ -72,5 +72,4 @@ class RequirementAnalysis(BaseModel):
         ..., description="Free text narrative only. NEVER consumed by the scorer."
     )
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
