@@ -13,6 +13,9 @@ from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from orchestrator.pipeline import _ATTRIBUTE_ENUMS, run_backend_pipeline
 from persistence.firestore_client import save_run
@@ -25,6 +28,21 @@ DEFAULT_AXES = list(_ATTRIBUTE_ENUMS.keys())
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+# Per-IP rate limiting. Applied only to the specific routes that opt in
+# via @limiter.limit(...) below (currently just /analyze) — /health is
+# left undecorated and stays unlimited.
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+    logger.warning("Rate limit exceeded on %s from %s", request.url.path, get_remote_address(request))
+    return JSONResponse(
+        status_code=429,
+        content={"error": "Too many requests, try again later"},
+    )
 
 
 def _format_validation_errors(exc: ValidationError) -> list[dict]:
@@ -84,15 +102,16 @@ def health() -> dict:
 
 
 @app.post("/analyze")
-def analyze(request: AnalyzeRequest) -> dict:
-    weights = request.weights
+@limiter.limit("10/hour")
+def analyze(request: Request, payload: AnalyzeRequest) -> dict:
+    weights = payload.weights
     if weights is None:
         weights = {axis: 1.0 for axis in DEFAULT_AXES}
 
-    result = run_backend_pipeline(request.problem_statement, weights)
+    result = run_backend_pipeline(payload.problem_statement, weights)
     result = jsonable_encoder(result)
 
-    run_id = save_run(request.problem_statement, weights, result)
+    run_id = save_run(payload.problem_statement, weights, result)
     result["run_id"] = run_id
 
     return result
