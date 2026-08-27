@@ -4,13 +4,19 @@ No auth, no endpoints beyond /analyze and /health — deliberately.
 """
 
 import logging
+import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ValidationError
 from slowapi import Limiter
@@ -28,6 +34,17 @@ DEFAULT_AXES = list(_ATTRIBUTE_ENUMS.keys())
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
+# CORS: only the configured frontend origin may call this API, and only
+# via GET/POST — never wildcard "*". Fails loudly at startup if
+# FRONTEND_ORIGIN isn't set, same convention as FIREBASE_CREDENTIALS_PATH.
+FRONTEND_ORIGIN = os.environ["FRONTEND_ORIGIN"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_ORIGIN],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 # Per-IP rate limiting. Applied only to the specific routes that opt in
 # via @limiter.limit(...) below (currently just /analyze) — /health is
