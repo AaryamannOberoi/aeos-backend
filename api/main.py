@@ -9,9 +9,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from fastapi import FastAPI
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 
 from orchestrator.pipeline import _ATTRIBUTE_ENUMS, run_backend_pipeline
+from persistence.firestore_client import save_run
 
 # The six TechnologyProfile fields that run_backend_pipeline / scorer.py
 # score against — same set orchestrator/pipeline.py's own __main__ uses
@@ -37,7 +39,13 @@ def analyze(request: AnalyzeRequest) -> dict:
     if weights is None:
         weights = {axis: 1.0 for axis in DEFAULT_AXES}
 
-    return run_backend_pipeline(request.problem_statement, weights)
+    result = run_backend_pipeline(request.problem_statement, weights)
+    result = jsonable_encoder(result)
+
+    run_id = save_run(request.problem_statement, weights, result)
+    result["run_id"] = run_id
+
+    return result
 
 
 if __name__ == "__main__":
